@@ -3,6 +3,7 @@
 """
 from baseconst import *
 
+
 def keydown(vkcode):
     keybd_event(vkcode, 0, 0, 0)
 
@@ -33,7 +34,8 @@ def getpos():
 
 
 if __name__ == '__main__':
-    # keypress([VK['VK_LWIN'], ord('Q')])
+    print(vk.Q)
+    keypress([vk.VK_LWIN, vk.Q])
     x, y = getpos()
-    # setpos(0,0)
     print(x, y)
+    setpos(0, 0)
