@@ -293,8 +293,6 @@ WM_QUIT = 0x12
 WM_HOTKEY = 0x0312
 WM_USER = 0x400
 
-WM_READYCLOSE = WM_USER + 3
-
 
 class POINT(Structure):
     _fields_ = [('x', c_int),
