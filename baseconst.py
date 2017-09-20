@@ -226,67 +226,13 @@ VK_list = {
     "VK_PA1": 0xFD,
     "VK_OEM_CLEAR": 0xFE}
 
-# mouse event,for sending mouse keys
-# https://msdn.microsoft.com/en-us/library/windows/desktop/ms646260(v=vs.85).aspx
-ME_list = {
-    'LD': 0x0002,  # mouse left button down
-    'LU': 0x0004,  # mouse left button up
-    'LP': 0x2 | 0x4,  # mouse left press
-    'MD': 0x0020,  # middle button
-    'MU': 0x0040,
-    'MP': 0x20 | 0x40,
-    'RD': 0x0008,  # right button
-    'RU': 0x0010,
-    'RP': 0x8 | 0x10,
-    'WHEEL': 0x0800  # the wheel move,The amount of movement is specified in dwData
-}
 
-# wParam in LowLevelMouseProc
-# https://msdn.microsoft.com/en-us/library/ms644986(v=vs.85).aspx
-VM_list = {
-    'LD': 0x0201,  # left button down
-    'LU': 0x0202,  # left button up
-    'RD': 0x0204,  # right button down
-    'RU': 0x0205,  # right button up
-    'MM': 0x0200,  # MouseMove event
-    'MW': 0x020A,  # MouseWheel
-    'MHW': 0x020E  # mouse horizontal wheel
-}
-
+# 辅助按键的代码,用于设置热键。
 MOD_list = {'alt': 0x0001,
             'ctrl': 0x0002,
             'shift': 0x0004,
             'win': 0x0008}
 
-
-class VK:
-    def __getattr__(self, item):
-        return VK_list[item]
-
-
-class VM:
-    def __getattr__(self, item):
-        return VM_list[item]
-
-
-class ME:
-    def __getattr__(self, item):
-        return ME_list[item]
-
-
-class MOD:
-    def __getattr__(self, item):
-        return MOD_list[item]
-
-
-vk = VK()
-vk.__doc__ = "键盘虚拟按键的代码，想获得全部可用的列表，请使用VK_list,它是一个字典。"
-vm = VM()
-vm.__doc__ = "监视鼠标时接受的代码，不用于发送按键。"
-mod = MOD()
-mod.__doc__ = "辅助按键的代码,用于设置热键。"
-me = ME()
-me.__doc__ = "鼠标的虚拟按键代码，详见 VM_list,发送按键时用的参数，不用于监控按键"
 
 # 消息循环的常量，也就是mainloop中的msg.message
 WM_QUIT = 0x12
@@ -368,6 +314,10 @@ msg_list = {}
 threadId = 0
 
 
+def postmsg(mymsg):
+    PostThreadMessage(threadId, mymsg, 0, 0)
+
+
 def closeloop():
     global threadId
     if threadId != 0:
@@ -378,7 +328,7 @@ def closeloop():
 def mainloop():
     global threadId
     threadId = GetCurrentThreadId()
-    msg = MSG()
+    msg = MSG() # get a struct 
     while GetMessage(byref(msg), c_void_p(None), 0, 0) > 0:
         for msgnum, func in msg_list.items():
             if msg.message == msgnum:
@@ -386,9 +336,4 @@ def mainloop():
 
         TranslateMessage(byref(msg))
         DispatchMessage(byref(msg))
-
-
-
-
-
 

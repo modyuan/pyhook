@@ -4,7 +4,23 @@ by 原照萌
 """
 from baseconst import *
 
+
 # global variables
+
+
+# wParam in LowLevelMouseProc
+# https://msdn.microsoft.com/en-us/library/ms644986(v=vs.85).aspx
+# 监视鼠标时接受的代码，不用于发送按键。
+VM_list = {
+    'LD': 0x0201,  # 鼠标左键按下
+    'LU': 0x0202,  # 左键抬起
+    'RD': 0x0204,  # 鼠标右键按下
+    'RU': 0x0205,  # 右键抬起
+    'MM': 0x0200,  # 鼠标移动
+    'MW': 0x020A,  # 鼠标滚轮滑动
+    'MHW': 0x020E  # 鼠标的水平滚轮滑动（卧槽还有这种鼠标？！）
+}
+
 
 hhooks = {"m": 0, "k": 0}  # handle of hooks
 cbf_keyboard = None  # the cbf jut mean Callback function
@@ -65,25 +81,22 @@ def _unhookmouse():
     del msg_list[WM_UNHOOKMS]
 
 
-def stophook(hooktype, cl=False):
+def stophook(hooktype):
     if hooktype == 'm':
-
-        PostThreadMessage(threadId, WM_UNHOOKMS, 0, 0)
+        postmsg(WM_UNHOOKMS)
     elif hooktype == 'k':
-        PostThreadMessage(threadId, WM_UNHOOKKB, 0, 0)
+        postmsg(WM_UNHOOKKB)
     else:
         Exception("hooktype can only be 'm' or 'k'.")
-    if cl:
-        PostThreadMessage(threadId, WM_CLOSE, 0, 0)
 
 
 def _keyboardproc(nCode, wParam, lParam):
     Param = lParam.contents
     args = {'keystatu': wParam, 'keycode': Param.vkCode,
             'scancode': Param.scanCode, 'flags': Param.flags}
-    ret = usercbf_keyboard(args)
+    ret = usercbf_keyboard(args)  # return True for not to block ,False to block
 
-    if ret == 0:  # return 0 for not to block ,other to block
+    if ret:
         CallNextHookEx(hhooks['k'], nCode, wParam, lParam)
         return 0
     else:
@@ -96,7 +109,7 @@ def _mouseproc(nCode, wParam, lParam):
             'mouseData': Param.mouseData >> 16}
 
     ret = usercbf_mouse(args)
-    if ret == 0:
+    if ret:
         CallNextHookEx(hhooks['m'], nCode, wParam, lParam)
         return 0
     else:
@@ -143,13 +156,15 @@ if __name__ == '__main__':
         print("vkCode:", args["keycode"])
         if args["keycode"] == 81:
             closeloop()
-        return 0
+        return True
 
     def test2(args):
-        print("x,y:", args["x"], args['y'], args["keystatu"])
-        if args["keystatu"] == vm.RU:
+        print("x,y:", args["x"], args['y'], "0x%04x" % args["keystatu"])
+        if args["keystatu"] == VM_list['RU']:
             closeloop()
-        return 0
+        return True
+
+    '''
     setcbf(test1, 'k')
     starthook('k')
     print('start loop,press Q to exit.')
@@ -160,5 +175,5 @@ if __name__ == '__main__':
     starthook('m')
     print('start loop,press mouse right button to exit.')
     mainloop()
-    '''
+
     print('unlock hook.')
